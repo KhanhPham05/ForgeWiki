@@ -2,7 +2,9 @@
 
 Items can be registered through [DeferredRegister and RegistryObject](index.md#1-registering).
 
-## Supply the registry object.
+You have registered you item ? - Then you can [visualize it](#visualize-your-item)
+
+## Supply The Registry Object.
 
 The `supplier` parameter you need to provide to the `register()` should be starting with `() ->` since `Supplier` is
 a [functional interface](https://www.geeksforgeeks.org/functional-interfaces-java/).
@@ -10,7 +12,7 @@ a [functional interface](https://www.geeksforgeeks.org/functional-interfaces-jav
 So it should be like this:
 ` ... register("example", () -> new Item(new Item.Properties()));`
 
-## Constructing an item
+## Constructing An Item
 
 As you see above, `Item` needs some properties that describe how your item is supposed to be.
 
@@ -18,7 +20,7 @@ These property options that you can describe:
 
 !!! note "Mappings Differences"
 
-    The table below uses Parchment Mappings. Names of methods maybe different on your side.
+    The table below uses [Parchment Mappings](https://parchmentmc.org/docs/getting-started). Names of methods maybe different on your side.
 
 | Property/Method     | Parameter(s)      | Description                                                                                                                                                                    | Default Values                                     |
 |---------------------|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
@@ -69,12 +71,12 @@ Just like `Item.Properties()`, these are some of the properties that you can set
 Item rarities list can be found in `net.minecraft.world.item.Rarity` which is an enum of 4 different rarities.
 Each rarity has it own color which determine the color of the **item name**
 
-| Rarity   | Item Name Color |
-|----------|-----------------|
-| COMMON   | White           |
-| UNCOMMON | Yellow          |
-| RARE     | Aqua            |
-| EPIC     | Light Purple    |
+| Rarity     | Item Name Color |
+|------------|-----------------|
+| `COMMON`   | White           |
+| `UNCOMMON` | Yellow          |
+| `RARE`     | Aqua            |
+| `EPIC`     | Light Purple    |
 
 !!! note
 
@@ -114,9 +116,28 @@ Click on one of these link if you want to :
 
 #### Add Item To A Vanilla Tab
 
+If you want to add your item to a __vanilla `CreativeModeTab`__, you can add it during `CreativeModeTabEvent.BuildContents`
 
+First of all, you create a `static void` method with name `onBuildingTabContents` with `CreativeModeTabEvent.BuildContents output` as parameter and call it via `IModBusEvent#addListener` in your constructor
 
-#### Create a new Tab
+Example code:
+
+```java
+class MainClass {
+  public MainClass() {
+    IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+    //...
+    bus.addListener(MainClass::onBuildingTabContents);
+  }
+
+  static void onBuildingTabContents(CreativeModeTabEvent.BuildContents output) {
+  }
+}
+```
+
+After that you can "accepting" items to vanilla tab exactly like using the `output` parameter in [here](#accepting-items-to-tab)
+
+#### Create A New Tab
 
 This is quite technical because since 1.19.3, the method of adding item to tab has changed significantly.
 
@@ -129,10 +150,6 @@ call `bus.addListener(MainClass::registerTabs);`
 Example Code:
 
 ```java
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.event.CreativeModeTabEvent;
-
 class MainClass {
 
     public MainClass() {
@@ -155,6 +172,8 @@ In the registering method call. There are 2 parameters you should pass in (also 
 
 You can reference to `builder` variable and use it as a properties builder, just like `Item.Properties`
 and `FoodProperties.Builder`
+
+##### Tab Configurations
 These are all the methods that you may want to have look at (highlighted methods belows are recommended to call when
 constructing the tab):
 
@@ -177,7 +196,9 @@ constructing the tab):
 | (Advanced) `withTabFactory`  | `Function` from `CreativeModeTab.Builder` to `CreativeModeTab` | You decide how the tab is built/convert/finalise into a complete `CreativeModeTab`.                                                                                                                         | Forge constructs the tab through a long constructor of `CreativeModeTab` |
 
 #### DisplayItemsGenerator
-Basically, this _`FunctionalInterface`_ acts as a placeholder for a SET of items that are in your tab. Which means in a tab must not have item duplication.
+
+Basically, this _`FunctionalInterface`_ acts as a placeholder for a SET of items that are in your tab. Which means in a
+tab must not have item duplication.
 And when building a new `CreativeModeTab` you must not leave this list empty.
 
 This is how you create a new `DisplayItemsGenerator`:
@@ -187,27 +208,76 @@ import net.minecraft.world.item.CreativeModeTab;
 
 class ModCreativeTabs {
     public static final CreativeModeTab.DisplayItemsGenerator EXAMPLE_GENERATOR = (flags, output, displayOperator) -> {
-        
+
     };
 }
 ```
 
-Let's say that you are a newcomer in modding, so you just only need to care the most about the `output` variable. 
-So let's talk about the `output` parameter, which is a reference to `CreativeModeTab.Output` interface.
+##### Accepting Items To Tab
+Let's say that you are a newcomer in modding, so you just only need to care the most about the `output` variable.
+So let's talk about the `output` parameter, which is a reference to `CreativeModeTab.Output` interface, which is the
+_only_ way which you can add item to your tab.
 
-If you are trying to add a single item into your tab, you can call `output.accept()` method and pass in a `new ItemStack(Item)` with the item that you want.
+If you are trying to add a single item into your tab, you can call `output.accept()` method and pass in
+a `new ItemStack(Item)` with the item that you want.
 
-!!! note 
+!!! note
 
     In case you are adding an item of your mod through `RegistryObject` you can call `.get()` method and put it in the `ItemStack` constructor and everything is fine.
 
-If you want to pass in multiple items, you can create a new list or set, then put all the items that you want in to that list/set. Finally, call `output.acceptAll(Collection<ItemStack> stacks)` and put your list/set in the parameter.
+If you want to pass in multiple items, you can create a new list or set, then put all the items that you want in to that
+list/set. Finally, call `output.acceptAll(Collection<ItemStack> stacks)` and put your list/set in the parameter.
 
 #### TabVisibility
+
 While "accepting" items to your tab, you may be wondering, what is the `TabVisibility`, so let us explain !
 
-This is an enum of 3 values:
+This is an enum of 3 values, each indicates a purpose of a specific items when accepting them into your tab:
 
-- `PARENT_AND_SEARCH_TABS` which is the default visibility of the items that you're "accepting". All items in that tab with that visibility will be shown in both your tab and the search tab.
+- `PARENT_AND_SEARCH_TABS` which is the default visibility of the items that you're "accepting". All items in that tab
+  with that visibility will be shown in both your tab and the search tab.
 - `PARENT_TAB_ONLY` - the items that you are accepting will only be shown in the tab. Not the search bar.
-- `SEARCH_TAB_ONLY` - is the reverse form of `PARENT_TAB_ONLY`. Only accepted items are shown in the searching tab such as Command Block or Structure Block 
+- `SEARCH_TAB_ONLY` - is the reverse form of `PARENT_TAB_ONLY`. Only accepted items are shown in the searching tab such
+  as Command Block or Structure Block
+
+## Visualize Your Item
+After registering your item and putting it in a creative tab. But, you may notice that your item isn't textured yet, and the item name may look very weird.
+It's because, you item have to be "visualize". Which mean, texture it and localizing it.
+
+### Item Model
+Step 1 In order to make your item texture to be rendered in game, you need a png file of your texture first.
+
+Step 2 After having a png texture file, you need to put it in your project in `resources/<modid>/textures/item/<your_png_file_here>`
+
+Step 3 Create a model file for your item.
+
+Step 3.1 : Create a new folder at `resources/<modid>/models/item/` 
+
+Step 3.2 : In that `/item/` folder, create a new JSON file with the name is your item id. For example, you registered an item with name `ruby_item`, so you create a file named `ruby_item.json`
+
+Step 3.3 : Fill in the json file with the content below.
+
+```json title="ruby_item.json" linenums="1"
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "modid:item/<your_png_file_NAME>"
+  }
+}
+```
+
+- at the `layer0`, you must reference to your png file that you just created in Step 2. And yes, this is a form of `ResourceLocation` [(Usage number 2)](resource_location.md#2-usages)
+- `<your_png_file_NAME>` this is the png file __name__ which means it shouldn't contain the `.png` extension.
+- Saying that your png file name is exactly the same as your item name (`.../textures/item/ruby_item.png`) so `<your_png_file_NAME>` should be `ruby_item` (no `.png` extension at the end)
+
+!!! note 
+  
+  The `"parent"` key will have a separate page for a list of all vanilla built-in types, which will be added in the future.
+
+Step 4 : [Localizing your item name](localizing.md)
+
+
+# Finished !
+
+----
+And that is how you can create a new item and visualize it in the game !
