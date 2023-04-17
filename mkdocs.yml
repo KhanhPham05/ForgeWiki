@@ -27,6 +27,12 @@ nav:
               - Gradlew Commands: 1.19.x/setup/configuration/gradlew.md
               - Mod File: 1.19.x/setup/configuration/mod-file.md
               - Main Class: 1.19.x/setup/configuration/main-class.md
+      - Basic Concepts:
+          - 1.19.x/basic_concepts/index.md
+          - Resource Location: 1.19.x/basic_concepts/resource_location.md
+          - Registration:
+              - Registering via Register Event: 1.19.x/basic_concepts/registration/register_event.md
+              - Registering Items: 1.19.x/basic_concepts/item.md
       - Tools:
           - 1.19.x/tools/index.md
           - Mixin: 1.19.x/tools/mixin.md

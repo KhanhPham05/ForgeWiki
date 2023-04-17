@@ -54,7 +54,9 @@ The **obsfucated field name** is the unmapped name of the function *(e.g. `f_251
 === "Mojang (SRG)"
 </div>
 <div class="mappingSearchBox">
-	<input class="mappingSearchInput" placeholder="Search the 1.19.3 mappings database..." version="1.19.3" allow="true,false,false"/>
+	<label>
+<input class="mappingSearchInput" placeholder="Search the 1.19.3 mappings database..." version="1.19.3" allow="true,false,false"/>
+</label>
 	<div class="mappingSearchRes">
 		<ol class="mappingSearchList"></ol>
 	</div>
